@@ -7,13 +7,13 @@
     <title>Document</title>
 </head>
 <body>
-v 5 <br>
+v 6 <br>
 <button>T</button>
 <canvas></canvas>
 <p></p>
 <script>
     let takePhotoButton = document.querySelector('button');
-    let canvas = document.querySelector('canvas');
+    let canvas = document.querySelector('canvas').getContext("bitmaprenderer");
     let output = document.querySelector('p');
 
     function log(s) {
