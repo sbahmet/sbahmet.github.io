@@ -11,6 +11,8 @@ v 7 <br>
 <canvas class="c1" width="320" height="180"></canvas>
 <br>
 <canvas class="c2" width="320" height="180"></canvas>
+<br>
+<canvas class="c3" width="320" height="180"></canvas>
 <p></p>
 <script>
     let canvas1 = document.querySelector('canvas.c1').getContext("bitmaprenderer");
@@ -36,8 +38,8 @@ v 7 <br>
             canvas1.transferFromImageBitmap(bmp1);
             canvas2.transferFromImageBitmap(bmp2);
 
-            const d1 = canvas1.createImageData(320, 180);
-            const d2 = canvas2.createImageData(320, 180);
+            const d1 = canvas1.getImageData(0, 0, 320, 180);
+            const d2 = canvas2.getImageData(0, 0, 320, 180);
 
             for(const i in d1.data) {
                 if (Math.abs(d1[i] - d2[i]) > 10) {
@@ -63,26 +65,19 @@ v 7 <br>
         err(e);
     }
 
-    let ctx = document.querySelector('canvas').getContext('2d');
+    let ctx = document.querySelector('canvas.c3').getContext('2d');
 
     ctx.fillStyle = "rgb(255 165 0)";
     ctx.strokeRect(2, 2, 10, 10);
     ctx.fillRect(0, 0, 2, 2);
 
-    const myImageData = ctx.createImageData(320, 180);
+    const myImageData = ctx.getImageData(0, 0, 320, 180);
 
     for (let i in myImageData.data) {
         if (myImageData.data[i] > 0) {
             log(i);
         }
     }
-
-    myImageData.data[115000] = 127;
-    myImageData.data[115001] = 127;
-    myImageData.data[115002] = 127;
-    myImageData.data[115003] = 127;
-
-    log(myImageData.data.length);
 
 </script>
 </body>
