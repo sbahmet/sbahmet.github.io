@@ -7,6 +7,7 @@
     <title>Document</title>
 </head>
 <body>
+v 5 <br>
 <button>T</button>
 <canvas></canvas>
 <p></p>
@@ -46,13 +47,6 @@
             oldImgBmp = newImgBmp;
             canvas.transferFromImageBitmap(newImgBmp);
         }, 3000);
-
-        //takePhotoButton.onclick = async () => img.src = URL.createObjectURL(await takePhoto());
-        takePhotoButton.onclick = async () => {
-            imgBmp = await takePhoto();
-
-            log(imgBmp);
-        };
     }
 
     try {
