@@ -7,14 +7,11 @@
     <title>Document</title>
 </head>
 <body>
-<video></video>
 <button>T</button>
 <img/>
 <p></p>
 <script>
-    let imageCapture = null;
     let takePhotoButton = document.querySelector('button');
-    let canvas = document.querySelector('canvas');
     let img = document.querySelector('img');
     let output = document.querySelector('p');
 
@@ -26,29 +23,23 @@
         log('Err: '+err);
     }
 
-    takePhotoButton.onclick = takePhoto;
+    async function start() {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'environment' , width: 320, height: 180}});
+        const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
 
-    function takePhoto() {
-        imageCapture
-            .takePhoto()
-            .then(blob => {
-                log('Took photo:', blob);
-                img.classList.remove('hidden');
-                img.src = URL.createObjectURL(blob);
-            })
-            .catch(error => {
-                err("takePhoto() error: " +  error);
-            });
+        async function takePhoto() {
+            return await imageCapture.takePhoto();
+        }
+
+        takePhotoButton.onclick = async () => img.src = URL.createObjectURL(await takePhoto());
     }
 
-    navigator.mediaDevices
-        .getUserMedia({ video: {facingMode: 'environment' , width: 1280, height: 720}})
-        .then(mediaStream => {
-            document.querySelector("video").srcObject = mediaStream;
-            const track = mediaStream.getVideoTracks()[0];
-            imageCapture = new ImageCapture(track);
-        })
-        .catch(err);
+    try {
+        start();
+    } catch (e) {
+        err(e);
+    }
+
 </script>
 </body>
 </html>
