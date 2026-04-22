@@ -9,11 +9,14 @@
 <body>
 v 6 <br>
 <button>T</button>
-<canvas></canvas>
+<canvas class="c1" width="320" height="180"></canvas>
+<br>
+<canvas class="c2" width="320" height="180"></canvas>
 <p></p>
 <script>
     let takePhotoButton = document.querySelector('button');
-    let canvas = document.querySelector('canvas').getContext("bitmaprenderer");
+    let canvas1 = document.querySelector('canvas.c1').getContext("bitmaprenderer");
+    let canvas2 = document.querySelector('canvas.c2').getContext("bitmaprenderer");
     let output = document.querySelector('p');
 
     function log(s) {
@@ -28,14 +31,22 @@ v 6 <br>
         const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'environment' , width: 320, height: 180}});
         const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
 
-        async function takePhoto() {
-            return await imageCapture.grabFrame();
-        }
-
         let oldImgBmp = null;
         let newImgBmp = null;
 
         function differ(bmp1, bmp2) {
+            canvas1.transferFromImageBitmap(bmp1);
+            canvas2.transferFromImageBitmap(bmp2);
+
+            const d1 = canvas1.createImageData(320, 180);
+            const d2 = canvas2.createImageData(320, 180);
+
+            for(const i in d1.data) {
+                if (Math.abs(d1[i] - d2[i]) > 50) {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -45,7 +56,7 @@ v 6 <br>
                 // todo: notify with newImg
             }
             oldImgBmp = newImgBmp;
-            canvas.transferFromImageBitmap(newImgBmp);
+
         }, 3000);
     }
 
@@ -54,6 +65,27 @@ v 6 <br>
     } catch (e) {
         err(e);
     }
+
+    let ctx = document.querySelector('canvas').getContext('2d');
+
+    ctx.fillStyle = "rgb(255 165 0)";
+    ctx.strokeRect(2, 2, 10, 10);
+    ctx.fillRect(0, 0, 2, 2);
+
+    const myImageData = ctx.createImageData(320, 180);
+
+    for (let i in myImageData.data) {
+        if (myImageData.data[i] > 0) {
+            log(i);
+        }
+    }
+
+    myImageData.data[115000] = 127;
+    myImageData.data[115001] = 127;
+    myImageData.data[115002] = 127;
+    myImageData.data[115003] = 127;
+
+    log(myImageData.data.length);
 
 </script>
 </body>
