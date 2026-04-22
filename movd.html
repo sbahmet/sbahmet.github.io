@@ -7,7 +7,7 @@
     <title>Document</title>
 </head>
 <body>
-v 9 <br>
+v 10 <br>
 <canvas class="c1" width="320" height="180"></canvas>
 <br>
 <canvas class="c3" width="320" height="180"></canvas>
@@ -29,6 +29,14 @@ v 9 <br>
         const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
 
         function differ(bmp1, bmp2) {
+            if (bmp1.every(b => b === 0)) {
+                log('1 black');
+            }
+
+            if (bmp2.every(b => b === 0)) {
+                log('2 black');
+            }
+
             let cnt = 0;
             for(const i in bmp1) {
                 if (Math.abs(bmp1[i] - bmp2[i]) > 10) {
