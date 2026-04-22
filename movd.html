@@ -7,14 +7,12 @@
     <title>Document</title>
 </head>
 <body>
-v 6 <br>
-<button>T</button>
+v 7 <br>
 <canvas class="c1" width="320" height="180"></canvas>
 <br>
 <canvas class="c2" width="320" height="180"></canvas>
 <p></p>
 <script>
-    let takePhotoButton = document.querySelector('button');
     let canvas1 = document.querySelector('canvas.c1').getContext("bitmaprenderer");
     let canvas2 = document.querySelector('canvas.c2').getContext("bitmaprenderer");
     let output = document.querySelector('p');
@@ -42,7 +40,7 @@ v 6 <br>
             const d2 = canvas2.createImageData(320, 180);
 
             for(const i in d1.data) {
-                if (Math.abs(d1[i] - d2[i]) > 50) {
+                if (Math.abs(d1[i] - d2[i]) > 10) {
                     return true;
                 }
             }
@@ -53,10 +51,9 @@ v 6 <br>
         setInterval(async () => {
             newImgBmp = await imageCapture.grabFrame();
             if (oldImgBmp && differ(newImgBmp, oldImgBmp)) {
-                // todo: notify with newImg
+                log('differ');
             }
             oldImgBmp = newImgBmp;
-
         }, 3000);
     }
 
