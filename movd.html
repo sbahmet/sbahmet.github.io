@@ -8,11 +8,11 @@
 </head>
 <body>
 <button>T</button>
-<img/>
+<canvas></canvas>
 <p></p>
 <script>
     let takePhotoButton = document.querySelector('button');
-    let img = document.querySelector('img');
+    let canvas = document.querySelector('canvas');
     let output = document.querySelector('p');
 
     function log(s) {
@@ -31,7 +31,21 @@
             return await imageCapture.grabFrame();
         }
 
-        let imgBmp = null;
+        let oldImgBmp = null;
+        let newImgBmp = null;
+
+        function differ(bmp1, bmp2) {
+            return false;
+        }
+
+        setInterval(async () => {
+            newImgBmp = await imageCapture.grabFrame();
+            if (oldImgBmp && differ(newImgBmp, oldImgBmp)) {
+                // todo: notify with newImg
+            }
+            oldImgBmp = newImgBmp;
+            canvas.transferFromImageBitmap(newImgBmp);
+        }, 3000);
 
         //takePhotoButton.onclick = async () => img.src = URL.createObjectURL(await takePhoto());
         takePhotoButton.onclick = async () => {
