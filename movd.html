@@ -28,10 +28,17 @@
         const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
 
         async function takePhoto() {
-            return await imageCapture.takePhoto();
+            return await imageCapture.grabFrame();
         }
 
-        takePhotoButton.onclick = async () => img.src = URL.createObjectURL(await takePhoto());
+        let imgBmp = null;
+
+        //takePhotoButton.onclick = async () => img.src = URL.createObjectURL(await takePhoto());
+        takePhotoButton.onclick = async () => {
+            imgBmp = await takePhoto();
+
+            log(imgBmp);
+        };
     }
 
     try {
