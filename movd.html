@@ -41,11 +41,8 @@
             });
     }
 
-
-
-
     navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia({ video: {facingMode: 'environment' , width: 1280, height: 720}})
         .then(mediaStream => {
             document.querySelector("video").srcObject = mediaStream;
             const track = mediaStream.getVideoTracks()[0];
