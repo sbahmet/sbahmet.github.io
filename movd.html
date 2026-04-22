@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<video></video>
+<button>T</button>
+<img/>
+<p></p>
+<script>
+    let imageCapture = null;
+    let takePhotoButton = document.querySelector('button');
+    let canvas = document.querySelector('canvas');
+    let img = document.querySelector('img');
+    let output = document.querySelector('p');
+
+    function log(s) {
+        output.innerHTML += '<br>' + s;
+    }
+
+    function err(err) {
+        log('Err: '+err);
+    }
+
+    takePhotoButton.onclick = takePhoto;
+
+    function takePhoto() {
+        imageCapture
+            .takePhoto()
+            .then(blob => {
+                log('Took photo:', blob);
+                img.classList.remove('hidden');
+                img.src = URL.createObjectURL(blob);
+            })
+            .catch(error => {
+                err("takePhoto() error: " +  error);
+            });
+    }
+
+
+
+
+    navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then(mediaStream => {
+            document.querySelector("video").srcObject = mediaStream;
+            const track = mediaStream.getVideoTracks()[0];
+            imageCapture = new ImageCapture(track);
+        })
+        .catch(err);
+</script>
+</body>
+</html>
