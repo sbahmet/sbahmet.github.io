@@ -7,36 +7,23 @@
     <title>Document</title>
 </head>
 <body>
-v 11 <br>
-<canvas class="c1" width="320" height="180"></canvas>
-<br>
-<canvas class="c3" width="320" height="180"></canvas>
-<p></p>
+v 12 <br>
+<canvas class="c1" width="180" height="320"></canvas>
 <script>
-    let canvas1 = document.querySelector('canvas.c1').getContext('bitmaprenderer');
-    let output = document.querySelector('p');
-
-    function log(s) {
-        output.innerHTML += '<br>' + s;
-    }
-
-    function err(err) {
-        log('Err: '+err);
-    }
-
     async function start() {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'environment' , width: 320, height: 180}});
+        let canvas1 = document.querySelector('canvas.c1').getContext('2d');
+        const width = 180;
+        const height = 320;
+
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'environment', width, height }});
         const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
 
         function differ(bmp1, bmp2) {
             let cnt = 0;
             for(const i in bmp1) {
-                if (bmp1[i] > 0) {
-                    log(i+': '+bmp1[i]);
-                }
                 if (Math.abs(bmp1[i] - bmp2[i]) > 10) {
                     cnt++;
-                    if (cnt > 1000) {
+                    if (cnt > 10000) {
                         return true;
                     }
                 }
@@ -45,15 +32,20 @@ v 11 <br>
             return false;
         }
 
+        const ctx = new OffscreenCanvas(width, height).getContext('2d');
+
         let newImgData = null;
         let oldImgData = null;
 
         setInterval(async () => {
-            canvas1.transferFromImageBitmap(await imageCapture.grabFrame());
-            newImgData = canvas1.getImageData(0, 0, 320, 180).data;
+            const frame = await imageCapture.grabFrame();
+            ctx.drawImage(frame, 0, 0);
+            newImgData = ctx.getImageData(0, 0, frame.width, frame.height);
 
-            if (oldImgData && differ(oldImgData, newImgData)) {
-                log('differ');
+            if (oldImgData && differ(oldImgData.data, newImgData.data)) {
+                canvas1.drawImage(await createImageBitmap(newImgData), 0, 0);
+                // todo: imageBitmap.close();
+                console.log('movement detected');
             }
             oldImgData = newImgData;
         }, 3000);
@@ -62,23 +54,8 @@ v 11 <br>
     try {
         start();
     } catch (e) {
-        err(e);
+        console.error(e);
     }
-
-    let ctx = document.querySelector('canvas.c3').getContext('2d');
-
-    ctx.fillStyle = "rgb(255 165 0)";
-    ctx.strokeRect(2, 2, 10, 10);
-    ctx.fillRect(0, 0, 2, 2);
-
-    const myImageData = ctx.getImageData(0, 0, 320, 180);
-
-    for (let i in myImageData.data) {
-        if (myImageData.data[i] > 0) {
-            log(i);
-        }
-    }
-
 </script>
 </body>
 </html>
