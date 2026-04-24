@@ -9,6 +9,7 @@
 <body>
 v 12 <br>
 <canvas class="c1" width="180" height="320"></canvas>
+<input type="text" name="access_token" value="">
 <script>
     async function start() {
         let canvas1 = document.querySelector('canvas.c1').getContext('2d');
@@ -56,6 +57,80 @@ v 12 <br>
     } catch (e) {
         console.error(e);
     }
+
+    async function sendImage () {
+        let canvas1 = document.querySelector('canvas.c1');
+        let ctx = canvas1.getContext('2d');
+
+        ctx.fillStyle = "rgb(200 0 0)";
+        ctx.fillRect(10, 10, 50, 50);
+        ctx.fillStyle = "rgb(0 0 200 / 50%)";
+        ctx.fillRect(30, 30, 50, 50);
+
+        // const img = canvas1.toDataURL('image/png');
+
+        // console.log(img);
+
+        const uploadParams = await fetch('https://api.pachca.com/api/shared/v1/uploads', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer cppWUN7N4362B7DANhkX9_dqLEDFo0H4vPFhNwffsb4',
+            },
+        });
+
+        if (uploadParams.direct_url) {
+            throw new Error('direct_url not defined');
+        }
+
+        const imageBlob = await new Promise(resolve => canvas1.toBlob(resolve, 'image/jpeg'));
+
+        const formData = new FormData;
+        formData.append('Content-Disposition', uploadParams['Content-Disposition']);
+        formData.append('acl', 'private');
+        formData.append('policy', uploadParams.policy);
+        formData.append('x-amz-credential', uploadParams['x-amz-credential']);
+        formData.append('x-amz-date', uploadParams['x-amz-date']);
+        formData.append('x-amz-signature', uploadParams['x-amz-signature']);
+        formData.append('key', uploadParams.key.replace('${filename}', 'movd.jpg'));
+        formData.append('file', imageBlob, 'movd.jpg');
+
+        await fetch(uploadParams.direct_url, {
+            method: "POST",
+            body: formData,
+        });
+
+        await fetch('https://api.pachca.com/api/shared/v1/messages', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer cppWUN7N4362B7DANhkX9_dqLEDFo0H4vPFhNwffsb4',
+                'Content-Type': 'application/json',
+            },
+            body: {
+                message: {
+                    entity_type: "discussion",
+                    entity_id: 38268730,
+                    content: "mov-d",
+                    files: [
+                        {
+                            key: uploadParams.key.replace('${filename}', 'movd.jpg'),
+                            name: "movd.jpg",
+                            file_type: "image",
+                            size: imageBlob.size,
+                            width: 180,
+                            height: 320
+                        }
+                    ],
+                    // "display_avatar_url": "https://example.com/avatar.png",
+                    display_name: "movd-bot",
+                    skip_invite_mentions: false,
+                },
+                link_preview: false
+            },
+        });
+    }
+
+    sendImage();
+
 </script>
 </body>
 </html>
