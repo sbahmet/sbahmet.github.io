@@ -7,11 +7,16 @@
     <title>Document</title>
 </head>
 <body>
-v 13 <br>
+v 14 <br>
 <canvas class="c1" width="180" height="320"></canvas>
 <input type="text" name="access_token" value="">
 <button>Send</button>
+<p id="log"></p>
 <script>
+
+    function log(s) {
+        document.querySelector('#log').innerHTML += s + '<br>';
+    }
     async function start() {
         let canvas1 = document.querySelector('canvas.c1').getContext('2d');
         const width = 180;
@@ -57,6 +62,7 @@ v 13 <br>
         start();
     } catch (e) {
         console.error(e);
+        log(e.message);
     }
 
     async function sendImage () {
@@ -151,8 +157,13 @@ v 13 <br>
         });
     }
 
-    document.querySelector('button').addEventListener('click', e => {
-        sendImage();
+    document.querySelector('button').addEventListener('click', async e => {
+        try {
+            await sendImage();
+        } catch (e) {
+            console.error(e);
+            log(e.message);
+        }
     });
 </script>
 </body>
