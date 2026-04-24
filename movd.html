@@ -53,6 +53,7 @@ v 14 <br>
                 canvas1.drawImage(await createImageBitmap(newImgData), 0, 0);
                 // todo: imageBitmap.close();
                 console.log('movement detected');
+                await sendImage();
             }
             oldImgData = newImgData;
         }, 3000);
@@ -67,12 +68,12 @@ v 14 <br>
 
     async function sendImage () {
         let canvas1 = document.querySelector('canvas.c1');
-        let ctx = canvas1.getContext('2d');
+        // let ctx = canvas1.getContext('2d');
 
-        ctx.fillStyle = "rgb(200 200 0)";
-        ctx.fillRect(10, 10, 50, 50);
-        ctx.fillStyle = "rgb(0 0 200 / 50%)";
-        ctx.fillRect(30, 30, 50, 50);
+        // ctx.fillStyle = "rgb(200 200 0)";
+        // ctx.fillRect(10, 10, 50, 50);
+        // ctx.fillStyle = "rgb(0 0 200 / 50%)";
+        // ctx.fillRect(30, 30, 50, 50);
 
         // const img = canvas1.toDataURL('image/png');
 
