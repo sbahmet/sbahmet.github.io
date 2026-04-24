@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="Referrer-Policy" content="unsafe-url" />
     <title>Document</title>
 </head>
 <body>
 v 12 <br>
 <canvas class="c1" width="180" height="320"></canvas>
 <input type="text" name="access_token" value="">
+<button>Send</button>
 <script>
     async function start() {
         let canvas1 = document.querySelector('canvas.c1').getContext('2d');
@@ -78,7 +78,7 @@ v 12 <br>
             'sec-fetch-mode': 'cors',
             'sec-fetch-site': 'cross-site',
             'Access-Control-Allow-Origin': '*',
-            'Referrer-Policy': 'unsafe-url',
+            'Referrer-Policy': 'no-referrer',
         };
 
         const authHeaders = {
@@ -88,9 +88,9 @@ v 12 <br>
         const uploadParams = await fetch('https://api.pachca.com/api/shared/v1/uploads', {
             method: 'POST',
             headers: {
-                ...authHeaders,
-                ...corsHeaders,
                 'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                ...authHeaders,
             },
         });
 
@@ -149,8 +149,9 @@ v 12 <br>
         });
     }
 
-    sendImage();
-
+    document.querySelector('button').addEventListener('click', e => {
+        sendImage();
+    });
 </script>
 </body>
 </html>
