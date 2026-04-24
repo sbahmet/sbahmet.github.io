@@ -85,7 +85,7 @@ v 12 <br>
             Authorization: `Bearer ${accessToken}`,
         };
 
-        const uploadParams = await fetch('https://api.pachca.com/api/shared/v1/uploads', {
+        const uploadParamsResponse = await fetch('https://api.pachca.com/api/shared/v1/uploads', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -94,7 +94,11 @@ v 12 <br>
             },
         });
 
-        if (uploadParams.direct_url) {
+        const uploadParams = await uploadParamsResponse.json();
+
+        console.log(uploadParams);
+
+        if (! uploadParams.direct_url) {
             throw new Error('direct_url not defined');
         }
 
