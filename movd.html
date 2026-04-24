@@ -7,7 +7,7 @@
     <title>Document</title>
 </head>
 <body>
-v 12 <br>
+v 13 <br>
 <canvas class="c1" width="180" height="320"></canvas>
 <input type="text" name="access_token" value="">
 <button>Send</button>
@@ -63,7 +63,7 @@ v 12 <br>
         let canvas1 = document.querySelector('canvas.c1');
         let ctx = canvas1.getContext('2d');
 
-        ctx.fillStyle = "rgb(200 0 0)";
+        ctx.fillStyle = "rgb(200 200 0)";
         ctx.fillRect(10, 10, 50, 50);
         ctx.fillStyle = "rgb(0 0 200 / 50%)";
         ctx.fillRect(30, 30, 50, 50);
@@ -109,6 +109,7 @@ v 12 <br>
         formData.append('acl', 'private');
         formData.append('policy', uploadParams.policy);
         formData.append('x-amz-credential', uploadParams['x-amz-credential']);
+        formData.append('x-amz-algorithm', uploadParams['x-amz-algorithm']);
         formData.append('x-amz-date', uploadParams['x-amz-date']);
         formData.append('x-amz-signature', uploadParams['x-amz-signature']);
         formData.append('key', uploadParams.key.replace('${filename}', 'movd.jpg'));
@@ -116,9 +117,6 @@ v 12 <br>
 
         await fetch(uploadParams.direct_url, {
             method: "POST",
-            headers: {
-                ...corsHeaders,
-            },
             body: formData,
         });
 
@@ -129,7 +127,7 @@ v 12 <br>
                 ...corsHeaders,
                 'Content-Type': 'application/json',
             },
-            body: {
+            body: JSON.stringify({
                 message: {
                     entity_type: "discussion",
                     entity_id: 38268730,
@@ -149,7 +147,7 @@ v 12 <br>
                     skip_invite_mentions: false,
                 },
                 link_preview: false
-            },
+            }),
         });
     }
 
