@@ -7,23 +7,28 @@
     <title>Document</title>
 </head>
 <body>
-v 14 <br>
-<canvas class="c1" width="180" height="320"></canvas>
+v 15 <br>
+<canvas class="c1" width="320" height="180"></canvas>
+<br>
 <input type="text" name="access_token" value="cppWUN7N4362B7DANhkX9_dqLEDFo0H4vPFhNwff">
+<br>
+Wait before start <input type="number" name="wait-before-start" value="120">Seconds
+<br>
+Send throttle time<input type="number" name="send-throttle-pause" value="300">Seconds
+<br>
 <button>Send</button>
 <p id="log"></p>
 <script>
+    window.addEventListener('load', async () => {
+        function log(s) {
+            document.querySelector('#log').innerHTML += s + '<br>';
+        }
 
-    function log(s) {
-        document.querySelector('#log').innerHTML += s + '<br>';
-    }
-    async function start() {
-        let canvas1 = document.querySelector('canvas.c1').getContext('2d');
-        const width = 180;
-        const height = 320;
+        const waitBeforeStartSec = parseInt(document.querySelector('input[name="wait-before-start"]').value);
+        const sendThrottlePauseSec = parseInt(document.querySelector('input[name="send-throttle-pause"]').value);
 
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'environment', width, height }});
-        const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+        const width = 320;
+        const height = 180;
 
         function differ(bmp1, bmp2) {
             let cnt = 0;
@@ -39,133 +44,133 @@ v 14 <br>
             return false;
         }
 
-        const ctx = new OffscreenCanvas(width, height).getContext('2d');
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: 'environment', width, height }});
 
-        let newImgData = null;
-        let oldImgData = null;
+        async function start() {
+            let canvas1 = document.querySelector('canvas.c1').getContext('2d');
+            const imageCapture = new ImageCapture(mediaStream.getVideoTracks()[0]);
+            const ctx = new OffscreenCanvas(width, height).getContext('2d');
 
-        setInterval(async () => {
-            const frame = await imageCapture.grabFrame();
-            ctx.drawImage(frame, 0, 0);
-            newImgData = ctx.getImageData(0, 0, frame.width, frame.height);
+            let newImgData = null;
+            let oldImgData = null;
 
-            if (oldImgData && differ(oldImgData.data, newImgData.data)) {
-                canvas1.drawImage(await createImageBitmap(newImgData), 0, 0);
-                // todo: imageBitmap.close();
-                console.log('movement detected');
-                await sendImage();
+            setInterval(async () => {
+                const frame = await imageCapture.grabFrame();
+                ctx.drawImage(frame, 0, 0);
+                newImgData = ctx.getImageData(0, 0, frame.width, frame.height);
+
+                if (oldImgData && differ(oldImgData.data, newImgData.data)) {
+                    canvas1.drawImage(await createImageBitmap(newImgData), 0, 0);
+                    // todo: imageBitmap.close();
+                    console.log('movement detected');
+                    await sendImageThrottled();
+                }
+                oldImgData = newImgData;
+            }, 10000);
+        }
+
+        setTimeout(start, waitBeforeStartSec * 1000);
+
+        let lastSentAt = null;
+
+        async function sendImageThrottled() {
+            if (lastSentAt && (new Date).getTime() - lastSentAt < sendThrottlePauseSec * 1000) {
+                return;
             }
-            oldImgData = newImgData;
-        }, 3000);
-    }
 
-    try {
-        start();
-    } catch (e) {
-        console.error(e);
-        log(e.message);
-    }
+            console.log('sending image', new Date);
 
-    async function sendImage () {
-        let canvas1 = document.querySelector('canvas.c1');
-        // let ctx = canvas1.getContext('2d');
+            let canvas1 = document.querySelector('canvas.c1');
 
-        // ctx.fillStyle = "rgb(200 200 0)";
-        // ctx.fillRect(10, 10, 50, 50);
-        // ctx.fillStyle = "rgb(0 0 200 / 50%)";
-        // ctx.fillRect(30, 30, 50, 50);
+            const accessToken = document.querySelector('input[name="access_token"]').value;
 
-        // const img = canvas1.toDataURL('image/png');
-
-        // console.log(img);
-
-        const accessToken = document.querySelector('input').value;
-
-        const corsHeaders = {
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'cross-site',
-            'Access-Control-Allow-Origin': '*',
-            'Referrer-Policy': 'no-referrer',
-        };
-
-        const authHeaders = {
-            Authorization: `Bearer ${accessToken}`,
-        };
-
-        const uploadParamsResponse = await fetch('https://api.pachca.com/api/shared/v1/uploads', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+            const corsHeaders = {
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'cross-site',
                 'Access-Control-Allow-Origin': '*',
-                ...authHeaders,
-            },
-        });
+                'Referrer-Policy': 'no-referrer',
+            };
 
-        const uploadParams = await uploadParamsResponse.json();
+            const authHeaders = {
+                Authorization: `Bearer ${accessToken}`,
+            };
 
-        console.log(uploadParams);
-
-        if (! uploadParams.direct_url) {
-            throw new Error('direct_url not defined');
-        }
-
-        const imageBlob = await new Promise(resolve => canvas1.toBlob(resolve, 'image/jpeg'));
-
-        const formData = new FormData;
-        formData.append('Content-Disposition', uploadParams['Content-Disposition']);
-        formData.append('acl', 'private');
-        formData.append('policy', uploadParams.policy);
-        formData.append('x-amz-credential', uploadParams['x-amz-credential']);
-        formData.append('x-amz-algorithm', uploadParams['x-amz-algorithm']);
-        formData.append('x-amz-date', uploadParams['x-amz-date']);
-        formData.append('x-amz-signature', uploadParams['x-amz-signature']);
-        formData.append('key', uploadParams.key.replace('${filename}', 'movd.jpg'));
-        formData.append('file', imageBlob, 'movd.jpg');
-
-        await fetch(uploadParams.direct_url, {
-            method: "POST",
-            body: formData,
-        });
-
-        await fetch('https://api.pachca.com/api/shared/v1/messages', {
-            method: 'POST',
-            headers: {
-                ...authHeaders,
-                ...corsHeaders,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: {
-                    entity_type: "discussion",
-                    entity_id: 38268730,
-                    content: "mov-d",
-                    files: [
-                        {
-                            key: uploadParams.key.replace('${filename}', 'movd.jpg'),
-                            name: "movd.jpg",
-                            file_type: "image",
-                            size: imageBlob.size,
-                            width: 180,
-                            height: 320
-                        }
-                    ],
-                    // "display_avatar_url": "https://example.com/avatar.png",
-                    display_name: "movd-bot",
-                    skip_invite_mentions: false,
+            const uploadParamsResponse = await fetch('https://api.pachca.com/api/shared/v1/uploads', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    ...authHeaders,
                 },
-                link_preview: false
-            }),
-        });
-    }
+            });
 
-    document.querySelector('button').addEventListener('click', async e => {
-        try {
-            await sendImage();
-        } catch (e) {
-            console.error(e);
-            log(e.message);
+            const uploadParams = await uploadParamsResponse.json();
+
+            if (! uploadParams.direct_url) {
+                throw new Error('direct_url not defined');
+            }
+
+            const imageBlob = await new Promise(resolve => canvas1.toBlob(resolve, 'image/jpeg'));
+
+            const formData = new FormData;
+            formData.append('Content-Disposition', uploadParams['Content-Disposition']);
+            formData.append('acl', 'private');
+            formData.append('policy', uploadParams.policy);
+            formData.append('x-amz-credential', uploadParams['x-amz-credential']);
+            formData.append('x-amz-algorithm', uploadParams['x-amz-algorithm']);
+            formData.append('x-amz-date', uploadParams['x-amz-date']);
+            formData.append('x-amz-signature', uploadParams['x-amz-signature']);
+            formData.append('key', uploadParams.key.replace('${filename}', 'movd.jpg'));
+            formData.append('file', imageBlob, 'movd.jpg');
+
+            await fetch(uploadParams.direct_url, {
+                method: "POST",
+                body: formData,
+            });
+
+            await fetch('https://api.pachca.com/api/shared/v1/messages', {
+                method: 'POST',
+                headers: {
+                    ...authHeaders,
+                    ...corsHeaders,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: {
+                        entity_type: "discussion",
+                        entity_id: 38268730,
+                        content: "mov-d",
+                        files: [
+                            {
+                                key: uploadParams.key.replace('${filename}', 'movd.jpg'),
+                                name: "movd.jpg",
+                                file_type: "image",
+                                size: imageBlob.size,
+                                width,
+                                height,
+                            }
+                        ],
+                        // "display_avatar_url": "https://example.com/avatar.png",
+                        display_name: "movd-bot",
+                        skip_invite_mentions: false,
+                    },
+                    link_preview: false
+                }),
+            });
+
+            lastSentAt = (new Date).getTime();
         }
+
+        document.querySelector('button').addEventListener('click', async e => {
+            try {
+                await sendImageThrottled();
+            } catch (e) {
+                console.error(e);
+                log(e.message);
+            }
+        });
     });
+
 </script>
 </body>
 </html>
