@@ -33,9 +33,9 @@ Send throttle time<input type="number" name="send-throttle-pause" value="300">Se
         function differ(bmp1, bmp2) {
             let cnt = 0;
             for(const i in bmp1) {
-                if (Math.abs(bmp1[i] - bmp2[i]) > 10) {
+                if (Math.abs(bmp1[i] - bmp2[i]) > 60) {
                     cnt++;
-                    if (cnt > 10000) {
+                    if (cnt > 20000) {
                         return true;
                     }
                 }
